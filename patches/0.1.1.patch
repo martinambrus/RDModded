@@ -1,0 +1,356 @@
+Subject: [PATCH] fix: don't fall apart on non-existent level file
+feat: implement API v 0.1
+---
+Index: com/mojang/rubydung/Player.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/com/mojang/rubydung/Player.java b/com/mojang/rubydung/Player.java
+--- a/com/mojang/rubydung/Player.java	(revision 5e3667a0528c281e0e4b2a48680bb01afcc6b561)
++++ b/com/mojang/rubydung/Player.java	(revision df99f1b24787fda5aee139fe6966f7f1417856e4)
+@@ -3,10 +3,13 @@
+ import com.mojang.rubydung.level.Level;
+ import com.mojang.rubydung.phys.AABB;
+ import java.util.List;
++
+ import org.lwjgl.input.Keyboard;
+ 
+ public class Player {
+    private Level level;
++   private float speedOnGround = 0.02F;
++   private float speedInAir =  0.005F;
+    public float xo;
+    public float yo;
+    public float zo;
+@@ -85,7 +88,10 @@
+          this.yd = 0.12F;
+       }
+ 
+-      this.moveRelative(xa, ya, this.onGround ? 0.02F : 0.005F);
++      //this.moveRelative(xa, ya, this.onGround ? 0.02F : 0.005F);
++      //this.moveRelative(xa, ya, this.onGround ? 0.02F : 0.1F);
++      //this.moveRelative(xa, ya, this.onGround ? 0.1F : 0.2F);
++      this.moveRelative(xa, ya, this.onGround ? this.speedOnGround : this.speedInAir);
+       this.yd = (float)((double)this.yd - 0.005D);
+       this.move(this.xd, this.yd, this.zd);
+       this.xd *= 0.91F;
+Index: com/mojang/rubydung/RubyDung.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/com/mojang/rubydung/RubyDung.java b/com/mojang/rubydung/RubyDung.java
+--- a/com/mojang/rubydung/RubyDung.java	(revision 5e3667a0528c281e0e4b2a48680bb01afcc6b561)
++++ b/com/mojang/rubydung/RubyDung.java	(revision df99f1b24787fda5aee139fe6966f7f1417856e4)
+@@ -1,13 +1,17 @@
+ package com.mojang.rubydung;
+ 
++import com.github.martinambrus.rdapi.game.Game;
++import com.github.martinambrus.rdapi.utils.PluginLoader;
+ import com.mojang.rubydung.level.Chunk;
+ import com.mojang.rubydung.level.Level;
+ import com.mojang.rubydung.level.LevelRenderer;
+ import java.awt.Component;
++import java.io.File;
+ import java.io.IOException;
+ import java.nio.FloatBuffer;
+ import java.nio.IntBuffer;
+ import javax.swing.JOptionPane;
++
+ import org.lwjgl.BufferUtils;
+ import org.lwjgl.LWJGLException;
+ import org.lwjgl.input.Keyboard;
+@@ -17,7 +21,7 @@
+ import org.lwjgl.opengl.GL11;
+ import org.lwjgl.util.glu.GLU;
+ 
+-public class RubyDung implements Runnable {
++public class RubyDung extends Game implements Runnable {
+    private static final boolean FULLSCREEN_MODE = false;
+    private int width;
+    private int height;
+@@ -30,6 +34,7 @@
+    private IntBuffer selectBuffer = BufferUtils.createIntBuffer(2000);
+    private HitResult hitResult = null;
+ 
++
+    public void init() throws LWJGLException, IOException {
+       int col = 920330;
+       float fr = 0.5F;
+@@ -67,6 +72,24 @@
+ 
+    public void run() {
+       try {
++         // load plugins
++         File pluginsFolder = new File("plugins");
++         if ( pluginsFolder.exists() ) {
++            PluginLoader jl = new PluginLoader();
++            for (final File fileEntry : pluginsFolder.listFiles()) {
++               if (!fileEntry.isDirectory()) {
++                  // load the plugin JAR file
++                  try {
++                     jl.loadPlugin( "plugins/" + fileEntry.getName(), this );
++                  } catch ( Exception e ) {
++                     System.out.println( "Could not load plugin JAR file " + fileEntry.getName() );
++                     System.out.println( e.getMessage() );
++                  }
++               }
++            }
++         }
++
++         // initialize the game
+          this.init();
+       } catch (Exception var9) {
+          JOptionPane.showMessageDialog((Component)null, var9.toString(), "Failed to start RubyDung", 0);
+@@ -179,75 +202,79 @@
+ 
+    }
+ 
+-   public void render(float a) {
+-      float xo = (float)Mouse.getDX();
+-      float yo = (float)Mouse.getDY();
+-      this.player.turn(xo, yo);
+-      this.pick(a);
++   public boolean render(float a) {
++      if ( super.render( a ) ) {
++         float xo = (float) Mouse.getDX();
++         float yo = (float) Mouse.getDY();
++         this.player.turn(xo, yo);
++         this.pick(a);
+ 
+-      while(Mouse.next()) {
+-         if (Mouse.getEventButton() == 1 && Mouse.getEventButtonState() && this.hitResult != null) {
+-            this.level.setTile(this.hitResult.x, this.hitResult.y, this.hitResult.z, 0);
+-         }
++         while (Mouse.next()) {
++            if (Mouse.getEventButton() == 1 && Mouse.getEventButtonState() && this.hitResult != null) {
++               this.level.setTile(this.hitResult.x, this.hitResult.y, this.hitResult.z, 0);
++            }
+ 
+-         if (Mouse.getEventButton() == 0 && Mouse.getEventButtonState() && this.hitResult != null) {
+-            int x = this.hitResult.x;
+-            int y = this.hitResult.y;
+-            int z = this.hitResult.z;
+-            if (this.hitResult.f == 0) {
+-               --y;
+-            }
++            if (Mouse.getEventButton() == 0 && Mouse.getEventButtonState() && this.hitResult != null) {
++               int x = this.hitResult.x;
++               int y = this.hitResult.y;
++               int z = this.hitResult.z;
++               if (this.hitResult.f == 0) {
++                  --y;
++               }
+ 
+-            if (this.hitResult.f == 1) {
+-               ++y;
+-            }
++               if (this.hitResult.f == 1) {
++                  ++y;
++               }
+ 
+-            if (this.hitResult.f == 2) {
+-               --z;
+-            }
++               if (this.hitResult.f == 2) {
++                  --z;
++               }
+ 
+-            if (this.hitResult.f == 3) {
+-               ++z;
+-            }
++               if (this.hitResult.f == 3) {
++                  ++z;
++               }
+ 
+-            if (this.hitResult.f == 4) {
+-               --x;
+-            }
++               if (this.hitResult.f == 4) {
++                  --x;
++               }
+ 
+-            if (this.hitResult.f == 5) {
+-               ++x;
+-            }
++               if (this.hitResult.f == 5) {
++                  ++x;
++               }
+ 
+-            this.level.setTile(x, y, z, 1);
+-         }
+-      }
++               this.level.setTile(x, y, z, 1);
++            }
++         }
+ 
+-      while(Keyboard.next()) {
+-         if (Keyboard.getEventKey() == 28 && Keyboard.getEventKeyState()) {
+-            this.level.save();
+-         }
+-      }
++         while (Keyboard.next()) {
++            if (Keyboard.getEventKey() == 28 && Keyboard.getEventKeyState()) {
++               this.level.save();
++            }
++         }
+ 
+-      GL11.glClear(16640);
+-      this.setupCamera(a);
+-      GL11.glEnable(2884);
+-      GL11.glEnable(2912);
+-      GL11.glFogi(2917, 2048);
+-      GL11.glFogf(2914, 0.2F);
+-      GL11.glFog(2918, this.fogColor);
+-      GL11.glDisable(2912);
+-      this.levelRenderer.render(this.player, 0);
+-      GL11.glEnable(2912);
+-      this.levelRenderer.render(this.player, 1);
+-      GL11.glDisable(3553);
+-      if (this.hitResult != null) {
+-         this.levelRenderer.renderHit(this.hitResult);
+-      }
++         GL11.glClear(16640);
++         this.setupCamera(a);
++         GL11.glEnable(2884);
++         GL11.glEnable(2912);
++         GL11.glFogi(2917, 2048);
++         GL11.glFogf(2914, 0.2F);
++         GL11.glFog(2918, this.fogColor);
++         GL11.glDisable(2912);
++         this.levelRenderer.render(this.player, 0);
++         GL11.glEnable(2912);
++         this.levelRenderer.render(this.player, 1);
++         GL11.glDisable(3553);
++         if (this.hitResult != null) {
++            this.levelRenderer.renderHit(this.hitResult);
++         }
+ 
+-      GL11.glDisable(2912);
+-      Display.update();
+-   }
++         GL11.glDisable(2912);
++         Display.update();
++      }
+ 
++      return true;
++   }
++
+    public static void checkError() {
+       int e = GL11.glGetError();
+       if (e != 0) {
+@@ -258,4 +285,9 @@
+    public static void main(String[] args) throws LWJGLException {
+       (new Thread(new RubyDung())).start();
+    }
++
++   @Override
++   public Timer getTimerInstance() {
++      return this.timer;
++   }
+ }
+Index: com/mojang/rubydung/Timer.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/com/mojang/rubydung/Timer.java b/com/mojang/rubydung/Timer.java
+--- a/com/mojang/rubydung/Timer.java	(revision 5e3667a0528c281e0e4b2a48680bb01afcc6b561)
++++ b/com/mojang/rubydung/Timer.java	(revision df99f1b24787fda5aee139fe6966f7f1417856e4)
+@@ -1,6 +1,12 @@
+ package com.mojang.rubydung;
+ 
+-public class Timer {
++import com.github.martinambrus.rdapi.timer.TimerInterface;
++import com.github.martinambrus.rdapi.timer.TimerListener;
++
++import java.util.ArrayList;
++import java.util.List;
++
++public class Timer implements TimerInterface {
+    private static final long NS_PER_SECOND = 1000000000L;
+    private static final long MAX_NS_PER_UPDATE = 1000000000L;
+    private static final int MAX_TICKS_PER_UPDATE = 100;
+@@ -11,12 +17,30 @@
+    public float timeScale = 1.0F;
+    public float fps = 0.0F;
+    public float passedTime = 0.0F;
++   private List<TimerListener> timerListeners = new ArrayList<TimerListener>();
++
++   public void addTimerListener( TimerListener tl ) {
++      this.timerListeners.add( tl );
++   }
+ 
+    public Timer(float ticksPerSecond) {
+       this.ticksPerSecond = ticksPerSecond;
+       this.lastTime = System.nanoTime();
+    }
+ 
++   @Override
++   public float getTicksPerSecond() {
++      return this.ticksPerSecond;
++   }
++
++   @Override
++   public void setTicksPerSecond(float tps) {
++      this.ticksPerSecond = tps;
++      for ( TimerListener tl : this.timerListeners ) {
++         tl.onTpsChanged( tps );
++      }
++   }
++
+    public void advanceTime() {
+       long now = System.nanoTime();
+       long passedNs = now - this.lastTime;
+Index: com/mojang/rubydung/level/Chunk.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/com/mojang/rubydung/level/Chunk.java b/com/mojang/rubydung/level/Chunk.java
+--- a/com/mojang/rubydung/level/Chunk.java	(revision 5e3667a0528c281e0e4b2a48680bb01afcc6b561)
++++ b/com/mojang/rubydung/level/Chunk.java	(revision df99f1b24787fda5aee139fe6966f7f1417856e4)
+@@ -47,7 +47,7 @@
+             for(int y = this.y0; y < this.y1; ++y) {
+                for(int z = this.z0; z < this.z1; ++z) {
+                   if (this.level.isTile(x, y, z)) {
+-                     int tex = y != this.level.depth * 2 / 3;
++                     boolean tex = y != this.level.depth * 2 / 3;
+                      ++tiles;
+                      if (!tex) {
+                         Tile.rock.render(t, this.level, layer, x, y, z);
+Index: com/mojang/rubydung/level/Level.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/com/mojang/rubydung/level/Level.java b/com/mojang/rubydung/level/Level.java
+--- a/com/mojang/rubydung/level/Level.java	(revision df99f1b24787fda5aee139fe6966f7f1417856e4)
++++ b/com/mojang/rubydung/level/Level.java	(revision 8afcf2367e346e0860de77143a12ad846e318f2c)
+@@ -40,15 +40,18 @@
+ 
+    public void load() {
+       try {
+-         DataInputStream dis = new DataInputStream(new GZIPInputStream(new FileInputStream(new File("level.dat"))));
+-         dis.readFully(this.blocks);
+-         this.calcLightDepths(0, 0, this.width, this.height);
++         File datFile = new File("level.dat");
++         if (datFile.exists() ) {
++            DataInputStream dis = new DataInputStream(new GZIPInputStream(new FileInputStream(datFile)));
++            dis.readFully(this.blocks);
++            this.calcLightDepths(0, 0, this.width, this.height);
+ 
+-         for(int i = 0; i < this.levelListeners.size(); ++i) {
+-            ((LevelListener)this.levelListeners.get(i)).allChanged();
+-         }
++            for (int i = 0; i < this.levelListeners.size(); ++i) {
++               ((LevelListener) this.levelListeners.get(i)).allChanged();
++            }
+ 
+-         dis.close();
++            dis.close();
++         }
+       } catch (Exception var3) {
+          var3.printStackTrace();
+       }

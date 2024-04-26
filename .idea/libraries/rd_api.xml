@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="rd-api">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/libs/rd-api.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
