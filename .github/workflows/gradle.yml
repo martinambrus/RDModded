@@ -35,9 +35,6 @@ jobs:
       with:
         gradle-version: '8.5'
 
-    - name: Change wrapper permissions
-      run: chmod +x ./gradlew
-
     - name: Init gradle wrapper
       run: gradle wrapper
 
