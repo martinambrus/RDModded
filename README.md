@@ -1,15 +1,49 @@
 RubyDung 2009 Modded
 --------------------
-This is a crazy experiment from some crazy people aiming at the creation of a ***[Bukkit-like modding API](https://github.com/martinambrus/RDApi)*** for one of the ***first versions of Minecraft*** from the year 2009 (back then still named *RubyDung*).
+This is a crazy experiment from some crazy people aiming at the creation 
+of an early mods-enabled Minecraft versions, starting as early as its 2009 inception, 
+when Minecraft was still called *RubyDung*.
 
-The aim of this project is to bring modularity to Minecraft from its earliest inception, and to be able to create something fun. And who knows - maybe even learn a thing or two about how Java games are created in the meanwhile :)
+Also, this is a learning project for me. I've never seen how a Java game is made, 
+so naturally decompiling Notch's old code should teach me something new and cool... right?
+ :-D
 
-This repository will provide you with all the tools necessary to be ready for your dream RubyDung mod creation in just 2 steps.
+![A modded RubyDung version with chocolate blocks instead of cobblestone and grass](https://i.imgur.com/0SsXWWt.png "A modded RubyDung version with chocolate blocks instead of cobblestone and grass")
 
-All you need is an installation of [gradle](https://gradle.org/) (v2) (or better yet - [IntelliJ Idea IDE](https://gradle.org/)) and to run 2 commands. This will split up a RubyDung game which you can run via [MultiMC](https://multimc.org/) and create plugins for.
+Downloads
+---------
+Due to copyright limitations, the only kind of direct download would be available as a result 
+of [automated GitHub Build Actions](https://github.com/martinambrus/RDModded/actions) 
+(even so, I'm not quite sure that this is kosher, so we shall see). That said, it's super-trivial 
+to build this project on your own by just downloading the Java IDE and running 2 tasks in there (see below).
 
-You may want to check an example [Time Slower mod](https://github.com/martinambrus/RDModTimeSlower) to get you started. The API is fairly simple, event-driven and if you ever saw a [Bukkit API](https://hub.spigotmc.org/javadocs/bukkit/) or coded for [Spigot](https://www.spigotmc.org/wiki/spigot-plugin-development/) / [Paper](https://www.spigotmc.org/wiki/spigot-plugin-development/) / [Purpur](https://purpurmc.org/) in your life, this should be all fairly familiar.
+Building
+--------
+This repository contains all the tools necessary to build an augmented RubyDung version 
+that is prepared for accepting 3rd party mods. Here are the steps:
 
-You may also want to check the [Minecraft Veteran Servers YouTube Channel](https://www.youtube.com/channel/UCMiKrpX4ViX4PGBOq1UXlvQ) for videos on creation of all this nonsense and perhaps some inspiration for creation of your own game / Minecraft clone :-D 
+1) install [gradle](https://gradle.org/) (v8.5 is tested) - or better yet, get the free Java development IDE [IntelliJ Idea](https://gradle.org/)
+2) run two gradle tasks:
+   1) *first_time_run*
+   2) *shadowJar*
 
-No source code from Notch, Mojang or Microsoft is used in this or any other repositories related to this project.
+This will generate a RubyDung mods-enabled version which you can run via [MultiMC](https://multimc.org/) 
+and create your very own mods for.
+
+Creating Mods
+-------------
+There is a sample [Time Slower mod](https://github.com/martinambrus/RDModTimeSlower) 
+to get you started. The actual [API](https://github.com/martinambrus/RDApi) 
+is fairly simple and if you ever saw a [Bukkit API](https://hub.spigotmc.org/javadocs/bukkit/) 
+or coded for [Spigot](https://www.spigotmc.org/wiki/spigot-plugin-development/) / 
+[Paper](https://www.spigotmc.org/wiki/spigot-plugin-development/) / 
+[Purpur](https://purpurmc.org/) in your life, this should feel familiar.
+
+Documentation
+-------------
+Once there is a stable first version of the API, documentation will follow. I'm pretty big 
+on documenting things, so the documentation will definitely be there and up-to-date.
+
+More Resources
+--------------
+You may want to check the [Minecraft Veteran Servers YouTube Channel](https://www.youtube.com/channel/UCMiKrpX4ViX4PGBOq1UXlvQ) for videos on creation of all this nonsense and perhaps some inspiration for creation of your own game / Minecraft clone :-D
