@@ -47,7 +47,7 @@ diff --git a/com/mojang/rubydung/RubyDung.java b/com/mojang/rubydung/RubyDung.ja
  package com.mojang.rubydung;
  
 +import com.github.martinambrus.rdapi.game.Game;
-+import com.github.martinambrus.rdapi.utils.PluginLoader;
++import com.github.martinambrus.rdapi.utils.ModLoader;
  import com.mojang.rubydung.level.Chunk;
  import com.mojang.rubydung.level.Level;
  import com.mojang.rubydung.level.LevelRenderer;
@@ -82,17 +82,17 @@ diff --git a/com/mojang/rubydung/RubyDung.java b/com/mojang/rubydung/RubyDung.ja
  
     public void run() {
        try {
-+         // load plugins
-+         File pluginsFolder = new File("plugins");
-+         if ( pluginsFolder.exists() ) {
-+            PluginLoader jl = new PluginLoader();
-+            for (final File fileEntry : pluginsFolder.listFiles()) {
++         // load mods
++         File modsFolder = new File("mods");
++         if ( modsFolder.exists() ) {
++            ModLoader jl = new ModLoader();
++            for (final File fileEntry : modsFolder.listFiles()) {
 +               if (!fileEntry.isDirectory()) {
-+                  // load the plugin JAR file
++                  // load the mod JAR file
 +                  try {
-+                     jl.loadPlugin( "plugins/" + fileEntry.getName(), this );
++                     jl.loadMod( "mods/" + fileEntry.getName(), this );
 +                  } catch ( Exception e ) {
-+                     System.out.println( "Could not load plugin JAR file " + fileEntry.getName() );
++                     System.out.println( "Could not load mod JAR file " + fileEntry.getName() );
 +                     System.out.println( e.getMessage() );
 +                  }
 +               }

@@ -23,7 +23,7 @@ sourceSets {
 }
 
 ext {
-    api_version = '0.1.1'
+    api_version = '0.1.2'
     api_filename = 'rd-api.jar';
     rd_version = 'rd-132211'
     rd_type = 'preclassic'
