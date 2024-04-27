@@ -35,8 +35,20 @@ jobs:
       with:
         gradle-version: '8.5'
 
-    - name: Build with Gradle Wrapper
-      run: ./gradlew build
+    - name: Change wrapper permissions
+      run: chmod +x ./gradlew
+
+    - name: Init gradle wrapper
+      run: gradle wrapper
+
+    - name: Change wrapper permissions
+      run: chmod +x ./gradlew
+
+    - name: Initialize project files and patch decompiled RubyDung sources
+      run: ./gradlew first_time_run
+
+    - name: Generate JAR file
+      run: ./gradlew shadowJar
 
     # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
     # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
