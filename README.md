@@ -1,3 +1,7 @@
+Effort moved to Fabric-enabled RubyDung :)
+------------------------------------------
+Please visit ***[https://github.com/martinambrus/RDForward](RDForward)*** if modding a nearly 20-years old game (in 2026) is your niche.
+
 RubyDung 2009 Modded
 --------------------
 This is a crazy experiment from some crazy people aiming at the creation 
